@@ -1,78 +1,74 @@
-import { captureOwnerStack, useState } from "react"
+import { useState } from "react"
 
 
-export const Square = ({ value, onSquareCLick }) => {
-
+const Square = ({ value, onSquareClick }) => {
   return (
-    <button onClick={onSquareCLick} className="uppercase font-semibold text-4xl border w-18 h-18" >{value}</button>
+    <button
+      onClick={onSquareClick}
+      className="uppercase font-semibold text-4xl border w-18 h-18" >
+      {value}
+    </button>
   )
 }
 
-export function App() {
-
-  const [squares, setSquares] = useState(Array(9).fill(null))
-  const [isNextX, setIsNextX] = useState(true)
-  const [history, setHistory] = useState([])
-
+function Board({ isNextX, squares, onPlay }) {
   const handleClick = (index) => {
     if (squares[index] || calculateWinner(squares)) {
       return
     }
     const nextSquares = squares.slice()
     nextSquares[index] = isNextX ? 'X' : 'O'
-    setSquares(nextSquares);
-    setIsNextX(!isNextX);
+    onPlay(nextSquares)
   }
 
   const winner = calculateWinner(squares)
   let status;
   status = winner ? `winner: ${winner}` : `nextMove: ${isNextX ? 'X' : 'O'}`
-  console.log(status)
 
   return (
     <>
-      <div className="flex flex-col w-screen h-screen justify-center items-center">
+      <div className="w-max flex flex-col justify-center items-center">
         <span className="border mb-4 px-4 py-2 text-xl" >{status}</span>
         <div className="row flex items-center">
           <Square
             value={squares[0]}
-            onSquareCLick={() => { handleClick(0) }}
+            onSquareClick={() => { handleClick(0) }}
           />
           <Square
             value={squares[1]}
-            onSquareCLick={() => { handleClick(1) }}
+            onSquareClick={() => { handleClick(1) }}
           />
           <Square
             value={squares[2]}
-            onSquareCLick={() => { handleClick(2) }}
+            onSquareClick={() => { handleClick(2) }}
           />
         </div>
         <div className="row flex items-center">
           <Square
             value={squares[3]}
-            onSquareCLick={() => { handleClick(3) }}
+            onSquareClick={() => { handleClick(3) }}
           />
           <Square
             value={squares[4]}
-            onSquareCLick={() => { handleClick(4) }}
+            onSquareClick={() => { handleClick(4) }}
           />
           <Square
             value={squares[5]}
-            onSquareCLick={() => { handleClick(5) }}
+            onSquareClick={() => { handleClick(5) }}
           />
         </div>
         <div className="row flex items-center">
           <Square
             value={squares[6]}
-            onSquareCLick={() => { handleClick(6) }}
+            onSquareClick={() => { handleClick(6) }}
           />
           <Square
             value={squares[7]}
-            onSquareCLick={() => { handleClick(7) }}
+            onSquareClick={() => { handleClick(7) }}
           />
           <Square
             value={squares[8]}
-            onSquareCLick={() => { handleClick(8) }}
+            onSquareClick={() => { handleClick(8) }}
           />
         </div>
       </div>
@@ -82,10 +78,46 @@ export function App() {
 
 export default function Game() {
 
+  const xIsNext = currentMove % 2 === 0;
+
+  const [history, setHistory] = useState([Array(9).fill(null)])
+  const [currentMove, setCurrentMove] = useState(0)
+  const currentSquares = history[currentMove];
+
+  const handlePlay = (nextSquares) => {
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares]
+    setHistory(nextHistory)
+    setCurrentMove(nextHistory.length - 1)
+  }
+
+  const jumpTo = (nextMove) => {
+    setCurrentMove(nextMove)
+  }
+
+  const moves = history.map((squares, move) => {
+    let description;
+    if (move > 0) {
+      description = 'Go to move #' + move;
+    } else {
+      description = 'Go to game start';
+    }
+    return (
+      <li key={move}>
+        <button className="border mb-1 px-4 py-2 text-xl" onClick={() => jumpTo(move)} >{description}</button>
+      </li>
+    )
+  })
+
   return (
     <>
-      <div className="game-board">
-        <App />
+      <div className="game w-screen h-screen flex justify-center items-center gap-4">
+        <div className="game-board">
+          <Board isNextX={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+        </div>
+        <div className="game-info">
+          <ol>{moves}</ol>
+        </div>
+
       </div>
     </>
   )
